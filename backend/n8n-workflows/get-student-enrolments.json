@@ -1,0 +1,213 @@
+{
+  "name": "get-student-enrolments",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -496,
+        -64
+      ],
+      "id": "e328bdf0-2ae0-4f92-9975-9731d3f93884",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Bbu4XwQR1EjYx8Vu",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Bbu4XwQR1EjYx8Vu",
+          "cachedResultName": "My project — decrypt canvas token"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {}
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -16,
+        -64
+      ],
+      "id": "e603df7f-3bd5-45d7-94f8-f2294c6ac748",
+      "name": "Call 'decrypt canvas token'"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cfc6610d-31a8-4958-9b92-1a0ba5b376e9",
+              "name": "teacher_id",
+              "value": "={{ $json.query.teacher_id }}",
+              "type": "string"
+            },
+            {
+              "id": "c4a96427-b97d-489f-a72c-7e1b731786c3",
+              "name": "course_id_canvas",
+              "value": "={{ $json.query.course_id_canvas }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -256,
+        -64
+      ],
+      "id": "d12d9e03-4306-4be2-b8fa-50367bc43621",
+      "name": "teacher and course ID Mapper"
+    },
+    {
+      "parameters": {
+        "url": "={{ $vars.canvas_base_url }}/courses/{{ $('teacher and course ID Mapper').item.json.course_id_canvas }}/enrollments",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "type",
+              "value": "StudentEnrollment"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.canvas_token }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        -64
+      ],
+      "id": "d4fa9a6d-80dd-4882-9884-63b0b593b307",
+      "name": "GET StudentEnrollments"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code in JavaScript (Run Once for All Items)\n\n// 1. Read single-value data from previous nodes\nconst teacherMapper = $node['teacher and course ID Mapper'].json;\nconst teacher_id = teacherMapper.teacher_id;\nconst course_id_canvas = teacherMapper.course_id_canvas;\n\nconst decrypted = $node[\"Call 'decrypt canvas token'\"].json;\nconst canvas_token = decrypted.canvas_token;\n\n// 2. Read all enrollments returned by GET StudentEnrollments\nconst enrollments = $items('GET StudentEnrollments').map(item => item.json);\n\n// 3. Build a single payload that groups everything\nconst payload = {\n  teacher_id,\n  course_id_canvas,\n  canvas_token,\n  enrollments,\n};\n\n// 4. Return one item for the next workflow\nreturn [\n  {\n    json: payload,\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        -64
+      ],
+      "id": "c364bf75-3893-4358-8929-41e2aa1ad932",
+      "name": "Node Response"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "headers": {
+            "host": "victor-std-torrens.app.n8n.cloud",
+            "user-agent": "PostmanRuntime/7.49.1",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "60.225.147.221",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "AU",
+            "cf-ray": "9a1db27e3533ed74-ADL",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "postman-token": "7b39bc2d-f5ed-4747-9d42-14810b1be8ff",
+            "x-forwarded-for": "60.225.147.221, 172.69.162.202",
+            "x-forwarded-host": "victor-std-torrens.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-99-5988668464-jfhnl",
+            "x-is-trusted": "yes",
+            "x-real-ip": "60.225.147.221"
+          },
+          "params": {},
+          "query": {
+            "teacher_id": "c276ce66-8741-4fd7-ac5b-943e2b25997b",
+            "course_id_canvas": "13177302"
+          },
+          "body": {},
+          "webhookUrl": "https://victor-std-torrens.app.n8n.cloud/webhook-test/canvas/submissions",
+          "executionMode": "test"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Call 'decrypt canvas token'": {
+      "main": [
+        [
+          {
+            "node": "GET StudentEnrollments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "teacher and course ID Mapper": {
+      "main": [
+        [
+          {
+            "node": "Call 'decrypt canvas token'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "teacher and course ID Mapper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET StudentEnrollments": {
+      "main": [
+        [
+          {
+            "node": "Node Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6e594301-d1e6-45e2-b4cb-400e90bbe758",
+  "meta": {
+    "instanceId": "4fdc3799b97b2f172f3adad077f8606d58c34afb0c44808b9859f3dc98d8c37d"
+  },
+  "id": "ZGGKsb1gxwBkE3du",
+  "tags": []
+}

@@ -1,0 +1,115 @@
+{
+  "name": "decrypt-canvas-token",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// Expected input: $json.token_encrypted (string)\n// Example: \"nUnUgJr/HBJXMKomju3F4jmT+g==:fCVYBt2qZ0y3Gx5b\"\n\nasync function decryptAesGcm(ciphertext_b64, iv_b64, secret) {\n  const enc = new TextEncoder();\n\n  // WebCrypto API (works in n8n Cloud or locally)\n  const wc = (globalThis.crypto?.subtle)\n    ? globalThis.crypto\n    : require('crypto').webcrypto;\n\n  // Convert secret to 32-byte key\n  const secretBytes = enc.encode(secret);\n  const keyMaterial = await wc.subtle.digest('SHA-256', secretBytes);\n  const key = await wc.subtle.importKey(\n    'raw',\n    keyMaterial,\n    { name: 'AES-GCM' },\n    false,\n    ['decrypt']\n  );\n\n  // Decode from base64\n  const fromB64 = (b64) => Buffer.from(b64, 'base64');\n  const iv = new Uint8Array(fromB64(iv_b64));\n  const ciphertext = new Uint8Array(fromB64(ciphertext_b64));\n\n  // Decrypt\n  const plainBuf = await wc.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);\n  return new TextDecoder().decode(plainBuf);\n}\n\n// ---- Execution ----\nconst token_encrypted = $json.token_encrypted;\nif (!token_encrypted) {\n  throw new Error('token_encrypted is required');\n}\n\n// Split ciphertext and IV\nconst [ciphertext_b64, iv_b64] = token_encrypted.split(':');\n\nconst SECRET_KEY = 'Xl4i5B0lQauSKy0NSSSz7e10zuisk7Ky';\n\nconst decryptedToken = await decryptAesGcm(ciphertext_b64, iv_b64, SECRET_KEY);\n\n// Return the decrypted token\nreturn [\n  {\n    json: {\n      canvas_token: decryptedToken\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        -240
+      ],
+      "id": "c5797ae8-92e4-4bd7-9685-fac34832d927",
+      "name": "Decrypt token"
+    },
+    {
+      "parameters": {
+        "url": "=https://wjwbgecdcmyuaohzhass.supabase.co/rest/v1/canvas_connections",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "select",
+              "value": "token_encrypted"
+            },
+            {
+              "name": "teacher_id",
+              "value": "=eq.{{ $json.teacher_id }}"
+            },
+            {
+              "name": "limit",
+              "value": "1"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -336,
+        -240
+      ],
+      "id": "ebfeb0fe-5632-49b9-b300-71c44d58e358",
+      "name": "GET token encrypted",
+      "alwaysOutputData": false,
+      "credentials": {
+        "supabaseApi": {
+          "id": "S0L0RzOVssHvE2Yw",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -640,
+        -240
+      ],
+      "id": "5ec24f9f-dcb0-4985-91a2-d0662d6d543a",
+      "name": "When Executed by Another Workflow"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "GET token encrypted": {
+      "main": [
+        [
+          {
+            "node": "Decrypt token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "GET token encrypted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9cbfd712-09fe-4415-a3a5-bad989d784a3",
+  "meta": {
+    "instanceId": "4fdc3799b97b2f172f3adad077f8606d58c34afb0c44808b9859f3dc98d8c37d"
+  },
+  "id": "Bbu4XwQR1EjYx8Vu",
+  "tags": []
+}

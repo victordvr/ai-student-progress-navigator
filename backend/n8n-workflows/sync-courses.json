@@ -1,0 +1,438 @@
+{
+  "name": "sync-courses",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "={{ $vars.canvas_base_url }}/courses",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "enrollment_type",
+              "value": "teacher"
+            },
+            {
+              "name": "per_page",
+              "value": "100"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.canvas_token }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1392,
+        64
+      ],
+      "id": "63ccf515-1f85-4357-b20c-52b75dc861bb",
+      "name": "Get courses from Canvas1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://wjwbgecdcmyuaohzhass.supabase.co/rest/v1/monitored_courses?on_conflict=teacher_id,course_id_canvas",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "teacher_id",
+              "value": "={{ $json.teacher_id }}"
+            },
+            {
+              "name": "course_id_canvas",
+              "value": "={{ $json.course_id_canvas }}"
+            },
+            {
+              "name": "course_name",
+              "value": "={{ $json.course_name }}"
+            },
+            {
+              "name": "is_active",
+              "value": "={{ $json.is_active }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -880,
+        64
+      ],
+      "id": "77c6d79e-5532-4b58-80fd-73c11773b440",
+      "name": "Save courses in DB",
+      "credentials": {
+        "supabaseApi": {
+          "id": "S0L0RzOVssHvE2Yw",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b4a31d15-7e7a-4d80-a460-213d507d0f8f",
+              "name": "teacher_id",
+              "value": "={{ $('When Executed by Another Workflow').item.json.teacher_id }}",
+              "type": "string"
+            },
+            {
+              "id": "33bc1052-af19-4b6c-8d93-6d9050e14ede",
+              "name": "course_id_canvas",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "1d7c1082-83aa-44d5-aec3-c319d99ad2da",
+              "name": "course_name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "887c2a18-8ddd-43d3-afd8-02016121598c",
+              "name": "is_active",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1120,
+        64
+      ],
+      "id": "3f882be6-e1ee-406f-99d8-e9ed905f831b",
+      "name": "Courses Info Mapper"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b4b229bf-f619-4f83-abe8-3ebd11e2b9e2",
+              "name": "teacher_id",
+              "value": "={{ $('Courses Info Mapper').item.json.teacher_id }}",
+              "type": "string"
+            },
+            {
+              "id": "0bfc6829-b948-49b5-8d19-21083199b89a",
+              "name": "course_id_canvas",
+              "value": "={{ $('Courses Info Mapper').item.json.course_id_canvas }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -640,
+        64
+      ],
+      "id": "98ddcb48-0146-42c1-a989-4405a15cc5f5",
+      "name": "Teacher and Course IDs Mapper"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Modo: Run Once for All Items\n\nconst items = $input.all();\n\n// Toma el teacher_id del primer item (todos traen el mismo)\nconst teacher_id = items[0]?.json.teacher_id;\n\n// Junta los IDs de curso desde todos los items\nconst ids = items\n  .map(i => String(i.json.course_id_canvas || '').trim())\n  .filter(v => v.length > 0);\n\n// Quita duplicados\nconst uniqueIds = [...new Set(ids)];\n\n// Prepara salida para el PATCH\nreturn [{\n  json: {\n    teacher_id,\n    courseIdsCsv: uniqueIds.join(','), // ej: \"113773082,113755492\"\n    hasIds: uniqueIds.length > 0\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        64
+      ],
+      "id": "5f77c73c-cb59-43b3-881d-7ce0607c324c",
+      "name": "Prepare Course IDs for Deactivation"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "164c0d64-d4b4-4fb7-b472-20147b1aa858",
+              "leftValue": "={{ $json.hasIds }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -160,
+        64
+      ],
+      "id": "8f30e8bc-159b-47b9-8cca-f89cf4d463a4",
+      "name": "IDs existence validator"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://wjwbgecdcmyuaohzhass.supabase.co/rest/v1/monitored_courses?teacher_id=eq.{{ $json.teacher_id }}&course_id_canvas=not.in.({{ $json.courseIdsCsv }})",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{ \"is_active\": false }",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        160,
+        16
+      ],
+      "id": "4d3ba0bc-acf6-4fcd-bcdf-17b855f50cc5",
+      "name": "Deactivate Missing Courses",
+      "alwaysOutputData": false,
+      "credentials": {
+        "supabaseApi": {
+          "id": "S0L0RzOVssHvE2Yw",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -2032,
+        64
+      ],
+      "id": "f0d6df33-4cd0-45b5-8557-3a13a09c08f8",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        416,
+        224
+      ],
+      "id": "ccf3c49e-623f-4620-bbd6-72fc8fbd0c0c",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Bbu4XwQR1EjYx8Vu",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Bbu4XwQR1EjYx8Vu",
+          "cachedResultName": "My project — decrypt canvas token"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {}
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -1696,
+        64
+      ],
+      "id": "dcfa7818-5d6b-4b58-9dfe-9645b8bad66b",
+      "name": "Call 'decrypt canvas token'"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get courses from Canvas1": {
+      "main": [
+        [
+          {
+            "node": "Courses Info Mapper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save courses in DB": {
+      "main": [
+        [
+          {
+            "node": "Teacher and Course IDs Mapper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Courses Info Mapper": {
+      "main": [
+        [
+          {
+            "node": "Save courses in DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Teacher and Course IDs Mapper": {
+      "main": [
+        [
+          {
+            "node": "Prepare Course IDs for Deactivation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Course IDs for Deactivation": {
+      "main": [
+        [
+          {
+            "node": "IDs existence validator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IDs existence validator": {
+      "main": [
+        [
+          {
+            "node": "Deactivate Missing Courses",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Call 'decrypt canvas token'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deactivate Missing Courses": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'decrypt canvas token'": {
+      "main": [
+        [
+          {
+            "node": "Get courses from Canvas1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "22005219-c86f-41b3-96c9-fe720f8b8c7a",
+  "meta": {
+    "instanceId": "4fdc3799b97b2f172f3adad077f8606d58c34afb0c44808b9859f3dc98d8c37d"
+  },
+  "id": "CHSXmrGeIekLAr3o",
+  "tags": []
+}

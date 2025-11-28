@@ -1,0 +1,2724 @@
+{
+  "name": "main-pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/canvas/save-token",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": false
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -912,
+        384
+      ],
+      "id": "c3618294-5610-4b7a-9f16-4bbd73a1d5b9",
+      "name": "Webhook save token",
+      "webhookId": "6b241559-9870-4064-897b-95e1a61219ec"
+    },
+    {
+      "parameters": {
+        "path": "/canvas/token-status",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -912,
+        640
+      ],
+      "id": "25c03ad6-a81b-4bfb-b79e-7d01235ba7f5",
+      "name": "Webhook get token status",
+      "webhookId": "9d7c452f-5e52-42b2-9f6e-16140eb1cc1e"
+    },
+    {
+      "parameters": {
+        "content": "Get token status Flow",
+        "height": 80,
+        "width": 176
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1296,
+        656
+      ],
+      "typeVersion": 1,
+      "id": "3e6709db-abca-44b2-86a3-16f8f44b57f6",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Saven canvas token",
+        "height": 80,
+        "width": 176
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1296,
+        400
+      ],
+      "typeVersion": 1,
+      "id": "f57ce3be-704b-4447-9083-774b50eca0b0",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "32b4ddd7-b34e-4db0-81d2-f21674bf0fd8",
+              "name": "teacher_id",
+              "value": "={{ $json.body.teacher_id }}",
+              "type": "string"
+            },
+            {
+              "id": "b9e11ea4-6afb-4bfd-a92c-bd08207f8fa8",
+              "name": "canvas_token",
+              "value": "={{ $json.body.canvas_token }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -640,
+        384
+      ],
+      "id": "32a1c212-f6cf-4566-aec3-676e73509215",
+      "name": "teacher_id and token Mapper"
+    },
+    {
+      "parameters": {
+        "jsCode": "const teacher_id = ($json.query?.teacher_id || '').trim();\nif (!teacher_id) {\n  throw new Error('teacher_id is required');\n}\nreturn [{ json: { teacher_id } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -704,
+        640
+      ],
+      "id": "65574d8e-cf55-4ab4-8838-0fd52060b82e",
+      "name": "teacher_id mapper"
+    },
+    {
+      "parameters": {
+        "url": "=https://wjwbgecdcmyuaohzhass.supabase.co/rest/v1/canvas_connections",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "select",
+              "value": "last4"
+            },
+            {
+              "name": "teacher_id",
+              "value": "=eq.{{ $json.teacher_id }}"
+            },
+            {
+              "name": "limit",
+              "value": "1"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -464,
+        640
+      ],
+      "id": "a1f84ae7-9c05-4575-b86f-1564871569df",
+      "name": "GET token status",
+      "alwaysOutputData": false,
+      "credentials": {
+        "supabaseApi": {
+          "id": "S0L0RzOVssHvE2Yw",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://wjwbgecdcmyuaohzhass.supabase.co/rest/v1/canvas_connections?on_conflict=teacher_id",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "teacher_id",
+              "value": "={{ $json.teacher_id }}"
+            },
+            {
+              "name": "token_encrypted",
+              "value": "={{ $json.token_encrypted }}"
+            },
+            {
+              "name": "last4",
+              "value": "={{ $json.last4 }}"
+            },
+            {
+              "name": "updated_at",
+              "value": "\"now()\""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -144,
+        384
+      ],
+      "id": "113448fd-9711-4ad6-afbb-df12d1e22147",
+      "name": "Save Canvas Token",
+      "credentials": {
+        "supabaseApi": {
+          "id": "S0L0RzOVssHvE2Yw",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"ok\",\n  \"hasToken\": true,\n  \"last4\": \"{{ $json.last4 }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        240,
+        592
+      ],
+      "id": "a0e4b31f-2c91-4dcd-be06-620b44e06931",
+      "name": "Token response"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"ok\",\n  \"hasToken\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        240,
+        752
+      ],
+      "id": "0c7406d9-5c37-4d60-8924-9369ba95b88d",
+      "name": "No token response"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"ok\",\n  \"message\": \"Canvas Token saved successfully\",\n  \"last4\": \"{{ $('Encrypt token').item.json.last4 }}\"\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        80,
+        384
+      ],
+      "id": "8c26f51d-825d-4aac-ac79-3a82ab9e1dc5",
+      "name": "Success response",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "jsCode": "// Inputs esperados en el item actual:\n// $json.teacher_id  (uuid)\n// $json.canvas_token (string)\n\nasync function encryptAesGcm(plainText, secret) {\n  // secret -> la conviertes a clave de 32 bytes via SHA-256\n  const enc = new TextEncoder();\n\n  // En n8n Cloud suele existir crypto.webcrypto; si no, intenta globalThis.crypto\n  const wc = (globalThis.crypto?.subtle)\n    ? globalThis.crypto\n    : require('crypto').webcrypto;\n\n  const secretBytes = enc.encode(secret);\n  const keyMaterial = await wc.subtle.digest('SHA-256', secretBytes);\n  const key = await wc.subtle.importKey(\n    'raw',\n    keyMaterial,\n    { name: 'AES-GCM' },\n    false,\n    ['encrypt']\n  );\n\n  // IV de 12 bytes para GCM\n  const iv = wc.getRandomValues(new Uint8Array(12));\n\n  const data = enc.encode(plainText);\n  const cipherBuf = await wc.subtle.encrypt({ name: 'AES-GCM', iv }, key, data);\n\n  // Utilidades base64\n  const toB64 = (u8) => Buffer.from(u8).toString('base64');\n\n  // WebCrypto devuelve el auth tag incluido en el ciphertext\n  return {\n    ciphertext_b64: toB64(new Uint8Array(cipherBuf)),\n    iv_b64: toB64(iv),\n  };\n}\n\nconst teacher_id = $json.teacher_id;\nconst canvas_token = $json.canvas_token;\n\nif (!teacher_id || !canvas_token) {\n  throw new Error('teacher_id and canvas_token are required');\n}\n\nconst last4 = canvas_token.slice(-4);\n\nconst SECRET_KEY = 'Xl4i5B0lQauSKy0NSSSz7e10zuisk7Ky';\n\nconst res = await encryptAesGcm(canvas_token, SECRET_KEY);\n\n// Empaqueta en un solo campo (fácil de guardar):\nconst token_encrypted = `${res.ciphertext_b64}:${res.iv_b64}`;\n\nreturn [\n  {\n    json: {\n      teacher_id,\n      token_encrypted,\n      last4\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        384
+      ],
+      "id": "1ca02836-a35d-4a4a-a039-d756bae30096",
+      "name": "Encrypt token"
+    },
+    {
+      "parameters": {
+        "content": "Sync Canvas Courses",
+        "height": 80,
+        "width": 176
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1296,
+        976
+      ],
+      "typeVersion": 1,
+      "id": "0bf73ae5-3797-4f24-a498-8cfd1a2e2d09",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "path": "canvas/courses/sync",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -928,
+        960
+      ],
+      "id": "cfc6db44-1485-4fc9-acf9-be2ecc65991e",
+      "name": "Sync Canvas Courses",
+      "webhookId": "3bfb0514-88b1-4552-bf1b-1e6307ed4280"
+    },
+    {
+      "parameters": {
+        "content": "GET courses from supabase",
+        "height": 80,
+        "width": 176,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1296,
+        1280
+      ],
+      "typeVersion": 1,
+      "id": "377ef1ae-0e2e-495c-b77c-34175dc4b8d1",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cfc6610d-31a8-4958-9b92-1a0ba5b376e9",
+              "name": "teacher_id",
+              "value": "={{ $json.query.teacher_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -704,
+        960
+      ],
+      "id": "1e63f1fb-c38c-45ca-9d2e-1bc167085239",
+      "name": "teacher_id_Mapper"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "CHSXmrGeIekLAr3o",
+          "mode": "id",
+          "cachedResultUrl": "/workflow/CHSXmrGeIekLAr3o"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -496,
+        960
+      ],
+      "id": "5ed346b0-cab7-4d0f-8278-4f2f67e4fa40",
+      "name": "Call 'sync_courses'"
+    },
+    {
+      "parameters": {
+        "url": "=https://wjwbgecdcmyuaohzhass.supabase.co/rest/v1/monitored_courses",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "select",
+              "value": "course_id_canvas, course_name, updated_at"
+            },
+            {
+              "name": "teacher_id",
+              "value": "=eq.{{ $json.query.teacher_id }}"
+            },
+            {
+              "name": "order",
+              "value": "course_name.asc"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -640,
+        1264
+      ],
+      "id": "559d42f5-ae75-4b84-b5ed-b7a41a256489",
+      "name": "GET courses from DB",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "S0L0RzOVssHvE2Yw",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "canvas/courses",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -928,
+        1264
+      ],
+      "id": "891eb36c-8d5a-4548-ac6c-5a55d0d55b7b",
+      "name": "Courses from DB",
+      "webhookId": "3bfb0514-88b1-4552-bf1b-1e6307ed4280"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "CHSXmrGeIekLAr3o",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/CHSXmrGeIekLAr3o",
+          "cachedResultName": "My project — sync_courses"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {}
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        512,
+        1152
+      ],
+      "id": "7647d7ff-9789-4458-ba8a-5afbd658a1ea",
+      "name": "Call 'sync_courses'1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d7e18d7b-77ee-4da6-ae93-91e6a2518062",
+              "name": "teacher_id",
+              "value": "={{ $('Courses from DB').item.json.query.teacher_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        192,
+        1152
+      ],
+      "id": "1e4b29eb-0126-417a-b7fd-41facc852462",
+      "name": "teacher_id_Mapper1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1c712bd4-1365-4ee8-8be6-3677cd18d868",
+              "name": "query.teacher_id",
+              "value": "={{ $('teacher_id_Mapper1').item.json.teacher_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        768,
+        960
+      ],
+      "id": "29ba1c3b-83ca-45c9-b883-f5b1035ccdb7",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"ok\",\n  \"message\": \"Courses synchronized\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -272,
+        960
+      ],
+      "id": "60cbbece-50d3-4adc-bbcb-5a17684658da",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "16fa8ecc-ccdf-4507-a05a-0c7dd76ff51c",
+              "leftValue": "={{ $json.isEmpty }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -160,
+        1264
+      ],
+      "id": "cf4c38d4-728d-412c-ae4b-b416e9e0b670",
+      "name": "IF Cache Empty"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Modo: Run Once for All Items\n\n// Toma TODOS los items del nodo anterior (uno por curso)\nconst rows = $input.all()\n  .map(i => i.json)\n  .filter(r => r && Object.keys(r).length > 0); // filtra {} cuando la tabla está vacía\n\n// Si necesitas el teacher_id desde el webhook inicial:\nconst teacher_id = $node[\"Courses from DB\"].json.query?.teacher_id;\n\nreturn [{\n  json: {\n    teacher_id,\n    isEmpty: rows.length === 0,\n    courses: rows\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        1264
+      ],
+      "id": "6482d7e3-7e15-429b-be25-b918e5eac557",
+      "name": "Prepare Cache Check"
+    },
+    {
+      "parameters": {
+        "jsCode": "// INPUT shape (from IF false):\n// [{ json: { isEmpty: false, courses: [ { course_id_canvas, course_name, updated_at }, ... ] } }]\n\nconst input = $input.all()[0].json;            // único item\nconst rows = Array.isArray(input.courses) ? input.courses : [];\n\n// Armar lista para la UI\nconst courses = rows.map(r => ({\n  id: Number(r.course_id_canvas),\n  name: String(r.course_name || '')\n}));\n\n// Sacar timestamps válidos y calcular MAX(updated_at)\nconst ts = rows\n  .map(r => Date.parse(r.updated_at))\n  .filter(n => Number.isFinite(n));\n\nconst maxTs = ts.length ? Math.max(...ts) : null;\nconst lastSyncedAt = maxTs ? new Date(maxTs).toISOString() : null;\n\n// TTL en minutos (ajusta a gusto)\nconst TTL_MINUTES = 60;\nconst stale = lastSyncedAt\n  ? (Date.now() - new Date(lastSyncedAt).getTime()) > TTL_MINUTES * 60_000\n  : true;\n\nreturn [{\n  json: { status: \"ok\", courses, lastSyncedAt, stale }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        1360
+      ],
+      "id": "6e5b4b19-a485-41ba-87ef-d6a103451f00",
+      "name": "Body Response"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a6e6a782-6a4b-47d3-aea3-35f5676cd499",
+              "leftValue": "={{ $json.last4 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -208,
+        640
+      ],
+      "id": "0cced908-6df8-48a6-ae84-2d13b100fa26",
+      "name": "IF Token exists"
+    },
+    {
+      "parameters": {
+        "content": "GET students from canvas",
+        "height": 80,
+        "width": 176,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1296,
+        1616
+      ],
+      "typeVersion": 1,
+      "id": "95ac49de-18d8-4e74-8bfa-31792e506ffd",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "url": "={{ $vars.canvas_base_url }}/courses/{{ $json.course_id_canvas }}/users",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.canvas_token }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -304,
+        1600
+      ],
+      "id": "41a04acd-38ec-4c53-985d-af41b8acb049",
+      "name": "GET Canvas - Users",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "path": "canvas/students",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -944,
+        1600
+      ],
+      "id": "3fdb4fbc-95b8-40f5-93d4-4534f3eca28d",
+      "name": "GET Canvas Students",
+      "webhookId": "17d935d2-4487-434b-b25e-41bc673a8557"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Thresholds (in days)\nconst INACTIVE_DAYS_THRESHOLD = 7;\n\nconst ATTENDANCE_MEDIUM_RISK_DAYS = 7;\nconst ATTENDANCE_HIGH_RISK_DAYS   = 14;\n\n// Get all enrollments (StudentEnrollment) from previous node\nconst wrapper = $items('Call \\'get-student-enrollments\\'1')[0].json;\nconst enrollments = wrapper.enrollments || [];\n\n// Get all users (to get emails) from the second HTTP node\nconst users = $items('GET Canvas - Users').map(i => i.json);\n\n// Build a lookup map: userId -> user object\nconst userById = {};\nfor (const u of users) {\n  userById[u.id] = u;\n}\n\nconst now = new Date();\nconst ONE_DAY_MS = 24 * 60 * 60 * 1000;\n\n// Merge records by user_id\nconst merged = enrollments.map(e => {\n  const u = userById[e.user_id] || {};\n\n  // --- Email availability ---\n  const email = u.email || null;\n  const emailAvailable = !!email; // true if email exists, false otherwise\n\n  // --- Inactivity (last_activity_at) ---\n  const lastActivity = e.last_activity_at || null;\n  let inactiveDays = null;\n  let inactive7Plus = false;\n\n  if (lastActivity) {\n    const d = new Date(lastActivity);\n    inactiveDays = Math.floor((now - d) / ONE_DAY_MS);\n    inactive7Plus = inactiveDays >= INACTIVE_DAYS_THRESHOLD;\n  }\n\n  // --- Attendance (last_attended_at) ---\n  const lastAttended = e.last_attended_at || null;\n  let attendanceDays = null;\n  let attendanceRisk = \"none\";\n\n  if (!lastAttended) {\n    attendanceRisk = \"no_attendance_yet\";\n  } else {\n    const a = new Date(lastAttended);\n    attendanceDays = Math.floor((now - a) / ONE_DAY_MS);\n\n    if (attendanceDays >= ATTENDANCE_HIGH_RISK_DAYS) {\n      attendanceRisk = \"high\";\n    } else if (attendanceDays >= ATTENDANCE_MEDIUM_RISK_DAYS) {\n      attendanceRisk = \"medium\";\n    } else {\n      attendanceRisk = \"none\";\n    }\n  }\n\n  return {\n    student_canvas_id: e.user_id,\n    name: u.name || e.user?.name || null,\n    email: email,\n    email_available: emailAvailable,\n\n    // Activity\n    last_activity_at: lastActivity,\n    inactive_days: inactiveDays,\n    inactive_7_plus: inactive7Plus,\n\n    // Attendance\n    last_attended_at: lastAttended,\n    attendance_days: attendanceDays,\n    attendance_risk: attendanceRisk,\n  };\n});\n\n// Return one item per student\nreturn merged.map(s => ({ json: s }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        1600
+      ],
+      "id": "d951c5ca-05f3-44c8-9ff6-a266774eded1",
+      "name": "Merge Student Data"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"status\": \"ok\",\n  \"count\": {{ $items().length }},\n  \"course_id_canvas\": {{ $('GET Canvas Students').first().json.query.course_id_canvas }},\n  \"students\": {{ $items().map(i => i.json) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        320,
+        1600
+      ],
+      "id": "23d784de-0bce-426b-b5ad-00f3c8a5ce1b",
+      "name": "Build Student Response",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        624,
+        1472
+      ],
+      "id": "a1f54013-adf8-4f90-865e-d75de56942b8",
+      "name": "Respond Students API"
+    },
+    {
+      "parameters": {
+        "url": "={{ $vars.canvas_base_url }}/courses/{{ $json.course_id }}/assignments/{{$json.id}}/submissions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Call \\'get-student-enrollments\\'').item.json.canvas_token }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -16,
+        1936
+      ],
+      "id": "0605c971-a176-4381-8227-141965805248",
+      "name": "GET Canvas - Submissions",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "url": "={{ $vars.canvas_base_url }}/courses/{{ $json.course_id_canvas }}/assignments",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.canvas_token }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -320,
+        1936
+      ],
+      "id": "13a4543c-4830-4885-805c-44f27fbe2c94",
+      "name": "GET Canvas - Assignments",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "path": "canvas/submissions",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -944,
+        1936
+      ],
+      "id": "907616e6-e418-4799-96e3-1ba7ef4f2b0f",
+      "name": "GET Student Submissions",
+      "webhookId": "17d935d2-4487-434b-b25e-41bc673a8557"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1216,
+        1840
+      ],
+      "id": "a408eada-61d1-4a8b-89bc-f9c12b6f09b8",
+      "name": "Missing Assignment Response"
+    },
+    {
+      "parameters": {
+        "content": "GET student submissions",
+        "height": 80,
+        "width": 176,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1296,
+        1952
+      ],
+      "typeVersion": 1,
+      "id": "cc2d4f63-eaf3-431a-aeba-4b1e48ef461e",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "path": "canvas/assignments",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -944,
+        2272
+      ],
+      "id": "9de9933a-4c73-4ad1-add0-9f091db2527b",
+      "name": "GET assignments information",
+      "webhookId": "17d935d2-4487-434b-b25e-41bc673a8557"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "ZGGKsb1gxwBkE3du",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/ZGGKsb1gxwBkE3du",
+          "cachedResultName": "My project — get-student-enrollments"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {}
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -624,
+        1936
+      ],
+      "id": "49b6ab56-8c28-4b00-a8bd-80ed71eaf7e3",
+      "name": "Call 'get-student-enrollments'",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "be2350fa-ece7-41b6-96a8-12aaf7f16358",
+              "name": "status",
+              "value": "ok",
+              "type": "string"
+            },
+            {
+              "id": "70ad2f06-02e8-4b35-bf63-040a9ed152da",
+              "name": "student_count",
+              "value": "={{ $items().length }}",
+              "type": "number"
+            },
+            {
+              "id": "b3881e73-93c2-47c3-b50f-aafc0aff7786",
+              "name": "course_id_canvas",
+              "value": "={{ $('GET Student Submissions').first().json.query.course_id_canvas }}",
+              "type": "string"
+            },
+            {
+              "id": "91d74a11-9987-4347-a428-ede0ad3179df",
+              "name": "generated_at",
+              "value": "={{ (new Date()).toISOString() }}",
+              "type": "string"
+            },
+            {
+              "id": "4407212e-15b8-44d9-b2a4-429b2725438f",
+              "name": "students",
+              "value": "={{ $items().map(i => i.json) }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        656,
+        1936
+      ],
+      "id": "6cd405f4-a71b-4afb-a8dd-1448520aa7f5",
+      "name": "Build Grades & Missing Assignments Response",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// ---------------------------------------------\n// Build student summary: missing assignments + grades\n// ---------------------------------------------\n\n// 1. Read data from previous nodes\nconst wrapper = $items('Call \\'get-student-enrollments\\'')[0].json;\nconst enrollments = wrapper.enrollments || [];\nconst assignments = $items('GET Canvas - Assignments').map(i => i.json);\nconst submissions = $items('GET Canvas - Submissions').map(i => i.json);\n\n// 2. Index assignments by ID\nconst assignmentById = {};\nfor (const a of assignments) {\n  assignmentById[a.id] = a;\n}\n\n// 3. Group missing submissions per student\nconst missingByStudent = {};\n\nfor (const s of submissions) {\n  if (!s.missing) continue;\n\n  const a = assignmentById[s.assignment_id];\n  if (!a) continue;\n\n  const studentId = s.user_id;\n\n  if (!missingByStudent[studentId]) {\n    missingByStudent[studentId] = [];\n  }\n\n  missingByStudent[studentId].push({\n    assignment_id: a.id,\n    title: a.name,\n    due_at: a.due_at || s.cached_due_date || null,\n    points_possible: a.points_possible ?? null,\n    preview_url: s.preview_url || null,\n  });\n}\n\n// 4. Build final summary object per student\nconst result = enrollments.map(e => {\n  const studentId = e.user_id;\n  const missing = missingByStudent[studentId] || [];\n\n  return {\n    json: {\n      student_canvas_id: studentId,\n      name: e.user?.name || null,\n      enrollment_state: e.enrollment_state,\n\n      // Missing assignments\n      missing_assignments_count: missing.length,\n      has_missing_assignments: missing.length > 0,\n      missing_assignments: missing,\n\n      // Grades from enrollments.grades\n      current_score: e.grades?.current_score ?? e.grades?.unposted_current_score ?? null,\n      final_score: e.grades?.final_score ?? e.grades?.unposted_final_score ?? null,\n      grade_url: e.grades?.html_url || null,\n    },\n  };\n});\n\nreturn result;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        304,
+        1936
+      ],
+      "id": "cd210b2e-83e8-4055-9600-9ec3bfe28df5",
+      "name": "Build Grades & Missing Assignments Summary"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "ZGGKsb1gxwBkE3du",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/ZGGKsb1gxwBkE3du",
+          "cachedResultName": "My project — get-student-enrollments"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {}
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -624,
+        1600
+      ],
+      "id": "f09c4565-5b3b-4519-a2b2-fda6f35b182e",
+      "name": "Call 'get-student-enrollments'1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "ZGGKsb1gxwBkE3du",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/ZGGKsb1gxwBkE3du",
+          "cachedResultName": "My project — get-student-enrollments"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {}
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -624,
+        2272
+      ],
+      "id": "5ba6faa0-ff7d-4d0c-91e9-a34b95acebfd",
+      "name": "Call 'get-student-enrollments'2"
+    },
+    {
+      "parameters": {
+        "url": "={{ $vars.canvas_base_url }}/courses/{{ $json.course_id }}/assignments/{{$json.id}}/submissions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Call \\'get-student-enrollments\\'2').item.json.canvas_token }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        2272
+      ],
+      "id": "2186dcd1-fdfc-4c93-a02c-463ad19dae71",
+      "name": "GET Canvas - Submissions1",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "url": "={{ $vars.canvas_base_url }}/courses/{{ $json.course_id_canvas }}/assignments",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.canvas_token }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -320,
+        2272
+      ],
+      "id": "4c0194b0-9afd-48d5-a30f-af71eb2b63f0",
+      "name": "GET Canvas - Assignments1",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// ---------------------------------------------------------\n// Build \"upcoming assignments\" summary for a single course\n// ---------------------------------------------------------\n//\n// Expected upstream nodes:\n// - Call 'get-student-enrollments'2  -> wrapper with { teacher_id, course_id_canvas, canvas_token, enrollments: [...] }\n// - GET Canvas - Assignments1        -> list of assignments for the course\n// - GET Canvas - Submissions1        -> list of submissions for those assignments\n//\n// This node produces one item per assignment with:\n// - basic assignment info\n// - due date status (overdue / due_today / due_soon / future / no_due_date)\n// - simple submission stats: submitted_count, pending_count, total_students\n// ---------------------------------------------------------\n\n// 1) Read wrapper (enrollments + metadata) from the subflow call\nconst wrapper = $items(\"Call 'get-student-enrollments'2\")[0].json;\nconst enrollments = wrapper.enrollments || [];\nconst courseId = wrapper.course_id_canvas;\n\n// 2) Read assignments and submissions from previous HTTP nodes\nconst assignmentsRaw = $items('GET Canvas - Assignments1').map(i => i.json);\nconst submissionsRaw = $items('GET Canvas - Submissions1').map(i => i.json);\n\n// 3) Build a set of valid student IDs from enrollments\n//    This lets us ignore Canvas \"test\" students or any extra user_id\nconst validStudentIds = new Set(enrollments.map(e => e.user_id));\n\n// Total number of real students in this course\nconst totalStudents = enrollments.length || 0;\n\n// 4) Filter assignments to exclude items like \"Roll Call Attendance\"\nconst assignments = assignmentsRaw.filter(a => a.name !== 'Roll Call Attendance');\n\n// 5) Index assignments by ID for quick lookup\nconst assignmentById = {};\nfor (const a of assignments) {\n  assignmentById[a.id] = a;\n}\n\n// 6) Aggregate submission stats per assignment\n//\n// We only count submissions for real students (in validStudentIds).\n// We also rely on submitted_at to determine whether it is submitted or still pending.\nconst statsByAssignment = {};\n\nfor (const s of submissionsRaw) {\n  const assignmentId = s.assignment_id;\n  const studentId = s.user_id;\n\n  // Ignore submissions that are not tied to a known assignment\n  if (!assignmentById[assignmentId]) continue;\n\n  // Ignore submissions for users that are not real students in this course\n  if (!validStudentIds.has(studentId)) continue;\n\n  if (!statsByAssignment[assignmentId]) {\n    statsByAssignment[assignmentId] = {\n      submitted: 0,\n    };\n  }\n\n  const stats = statsByAssignment[assignmentId];\n\n  // Simple rule: if submitted_at is present, we consider it as submitted\n  const isSubmitted = !!s.submitted_at;\n  if (isSubmitted) {\n    stats.submitted += 1;\n  }\n}\n\n// 7) Helper to compute due date status\nconst now = new Date();\nconst ONE_DAY_MS = 24 * 60 * 60 * 1000;\n\nfunction computeDueInfo(dueAt) {\n  if (!dueAt) {\n    return { daysUntilDue: null, dueStatus: 'no_due_date' };\n  }\n\n  const dueDate = new Date(dueAt);\n  const diffDays = Math.floor((dueDate - now) / ONE_DAY_MS);\n\n  if (diffDays < 0) {\n    return { daysUntilDue: diffDays, dueStatus: 'overdue' };\n  }\n\n  if (diffDays === 0) {\n    return { daysUntilDue: 0, dueStatus: 'due_today' };\n  }\n\n  if (diffDays <= 7) {\n    return { daysUntilDue: diffDays, dueStatus: 'due_soon' };\n  }\n\n  return { daysUntilDue: diffDays, dueStatus: 'future' };\n}\n\n// 8) Build one output item per assignment\nconst result = assignments.map(a => {\n  const stats = statsByAssignment[a.id] || { submitted: 0 };\n  const submittedCount = stats.submitted;\n  const pendingCount = totalStudents > 0\n    ? Math.max(totalStudents - submittedCount, 0)\n    : null;\n\n  const dueInfo = computeDueInfo(a.due_at);\n\n  return {\n    json: {\n      assignment_id: a.id,\n      title: a.name,\n      due_at: a.due_at || null,\n      points_possible: a.points_possible ?? null,\n\n      // Use official Canvas URL provided by the Assignments API\n      assignment_url: a.html_url || null,\n\n      // Due date info\n      days_until_due: dueInfo.daysUntilDue,\n      due_status: dueInfo.dueStatus, // 'overdue' | 'due_today' | 'due_soon' | 'future' | 'no_due_date'\n\n      // Submission stats\n      total_students: totalStudents,\n      submitted_count: submittedCount,\n      pending_count: pendingCount,\n    },\n  };\n});\n\nreturn result;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        304,
+        2272
+      ],
+      "id": "f86d3c01-3ef2-42a6-b1bc-d558495d53d9",
+      "name": "Build Assignments Summary"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "be2350fa-ece7-41b6-96a8-12aaf7f16358",
+              "name": "status",
+              "value": "ok",
+              "type": "string"
+            },
+            {
+              "id": "70ad2f06-02e8-4b35-bf63-040a9ed152da",
+              "name": "assignment_count",
+              "value": "={{ $items().length }}",
+              "type": "number"
+            },
+            {
+              "id": "b3881e73-93c2-47c3-b50f-aafc0aff7786",
+              "name": "course_id_canvas",
+              "value": "={{ $('GET assignments information').first().json.query.course_id_canvas }}",
+              "type": "string"
+            },
+            {
+              "id": "91d74a11-9987-4347-a428-ede0ad3179df",
+              "name": "generated_at",
+              "value": "={{ (new Date()).toISOString() }}",
+              "type": "string"
+            },
+            {
+              "id": "4407212e-15b8-44d9-b2a4-429b2725438f",
+              "name": "assignments",
+              "value": "={{ $items().map(i => i.json) }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        592,
+        2272
+      ],
+      "id": "1e571ebc-9f9e-4089-9ca5-8c9d15be71f6",
+      "name": "Build Assignments Summary Response",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        864,
+        2272
+      ],
+      "id": "5fd2f640-a10b-44ea-a8f1-1d5f71f92a07",
+      "name": "Assignments Summary Response"
+    },
+    {
+      "parameters": {
+        "content": "GET assignments information",
+        "height": 80,
+        "width": 176,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1296,
+        2288
+      ],
+      "typeVersion": 1,
+      "id": "a776f9ff-e3a3-4122-949d-c20fad1052aa",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "canvas/contact-student",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -944,
+        2592
+      ],
+      "id": "1653a5a4-1ba5-449c-8e20-48eeb01b430a",
+      "name": "Contact student",
+      "webhookId": "1e6e8498-f3e0-4024-87d3-7574d071d0a6"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.llm_prompt }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -416,
+        2592
+      ],
+      "id": "27e616bb-d0da-46f6-a7b0-af4f71c1c357",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -416,
+        2848
+      ],
+      "id": "f6285a27-d6d3-4570-a64f-83484c09fdd7",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "XFPfbxIjV2DvOsis",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.student_email }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.body }}",
+        "options": {
+          "replyTo": "={{ $json.teacher_email }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -320,
+        3040
+      ],
+      "id": "2cb22005-0471-4580-ad8f-e736c05507cc",
+      "name": "Send a message",
+      "webhookId": "84a86516-0691-402b-8aa1-c8b0d8250db5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "DExDbVfvOcNAAB1H",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "canvas/contact-student/send",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -960,
+        3040
+      ],
+      "id": "c05f4168-bf64-4b06-85fb-e3d96524c21c",
+      "name": "Send email",
+      "webhookId": "a0c8eb39-80de-42ef-afcf-86043f98cf21"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Read incoming payload from webhook\nconst body = $input.first().json.body\n\n// Basic destructuring of important fields\nconst {\n  teacher_id,\n  teacher_name,\n  course_name,\n  course_id_canvas,\n  student_canvas_id,\n  student_name,\n  student_email,\n  context = {}\n} = body;\n\nconst {\n  inactive_days,\n  attendance_days,\n  attendance_risk,\n  missing_assignments_count,\n  missing_assignments_titles = [],\n  current_score,\n  final_score\n} = context;\n\n// Build a short natural-language summary that we will send to the LLM\nconst summaryLines = [];\n\nsummaryLines.push(`Student name: ${student_name}`);\nsummaryLines.push(`Teacher name: ${teacher_name}`);\nsummaryLines.push(`Course name (Canvas): ${course_name}`);\nsummaryLines.push(`Email: ${student_email || \"not available\"}`);\n\nif (inactive_days != null) {\n  summaryLines.push(`Inactive on Canvas for: ${inactive_days} day(s).`);\n}\n\nif (attendance_days != null) {\n  summaryLines.push(`Days since last attendance: ${attendance_days}.`);\n}\n\nif (attendance_risk && attendance_risk !== \"none\") {\n  summaryLines.push(`Attendance risk level: ${attendance_risk}.`);\n}\n\nif (typeof missing_assignments_count === \"number\") {\n  summaryLines.push(`Missing assignments: ${missing_assignments_count}.`);\n}\n\nif (missing_assignments_titles.length > 0) {\n  summaryLines.push(`Missing assignment titles: ${missing_assignments_titles.join(\", \")}.`);\n}\n\nif (current_score != null) {\n  summaryLines.push(`Current score: ${current_score}.`);\n}\n\nif (final_score != null) {\n  summaryLines.push(`Final score (so far): ${final_score}.`);\n}\n\nconst contextSummary = summaryLines.join(\" \");\n// Prompt to send to OpenAI to generate an email draft\nconst llm_prompt = `\nYou are helping a teacher write a short, clear, empathetic email to a student.\n\nContext:\n${contextSummary}\n\nWrite the email in English that:\n- Is polite, supportive and warm.\n- Starts with “Dear {{student_name}},”.\n- Acknowledges the student’s current situation based on the context (for example, low activity or missing assessments) in a non-judgmental, supportive tone. These are some rules:\n1. If inactive_days is less than 7:\n   - Acknowledge the recent activity gently.\n   - Invite the student to keep working and keep connected.\n2. If inactive_days is greater than or equal to 7:\n   - You can say something like the student hasn't logged in for a while, but don't specify the exact days of inactivity so the student doesn't feel monitored.\n   - Invite the student to log back into Canvas to review materials or submit pending work.\n   - Offer general support or encouragement.\n3. If attendance_risk is \"medium\" or \"high\":\n   - Mention class attendance carefully, inviting the student to reconnect.\n4. If attendance_risk is \"none\" or \"no_attendance_yet\":\n   - DO NOT mention attendance at all.\n5. If missing_assignments_count > 0:\n   - Mention missing assignments politely.\n6. If missing_assignments_count = 0:\n   - DO NOT mention missing assignments.\nMoreover:\n- Encourages the student to reply to the email or book a meeting if they need help.\n- Emphasises that the teacher cares about their progress and wants to support them.\n- Does NOT mention technical IDs such as course_id_canvas or internal system details.\n- Keeps the email under 180 words.\n- Try to mention the course name as it is nice that students know the course we are talking about\n\nReturn ONLY a JSON object with this exact structure:\n{\n  \"subject\": \"<short, positive subject line>\",\n  \"body\": \"<email body text>\"\n}\nDo not add any extra text outside this JSON.\n`;\n\n// Return object for the next node (OpenAI / LLM)\nreturn [\n  {\n    json: {\n      teacher_id,\n      teacher_name,\n      course_name,\n      course_id_canvas,\n      student_canvas_id,\n      student_name,\n      student_email,\n      context_summary: contextSummary,\n      llm_prompt: llm_prompt\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -688,
+        2592
+      ],
+      "id": "51d2f46a-1940-48fd-9117-4c4be48e611e",
+      "name": "Build Object with llm_prompt for OpenAI API"
+    },
+    {
+      "parameters": {
+        "jsCode": "// `text` viene del Basic LLM Chain\nlet raw = $json.text; // string con el JSON\n\n// Remover formateo de bloque de código markdown (```json ... ```)\nraw = raw.trim();\nif (raw.startsWith('```')) {\n  raw = raw.replace(/^```[a-zA-Z]*\\n?/, '').replace(/```$/, '').trim();\n}\n\nconst parsed = JSON.parse(raw); // { subject: '...', body: '...' }\nreturn [\n  {\n    json: parsed // ahora el flujo tiene { subject, body }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        2592
+      ],
+      "id": "724913c2-4763-437a-8ec9-3b67daa1157c",
+      "name": "Build Raw JSON subject and body"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        208,
+        2592
+      ],
+      "id": "8a875c88-5c86-43fb-8f85-d43e03518854",
+      "name": "Subject and Body Response"
+    },
+    {
+      "parameters": {
+        "content": "Contact Student",
+        "height": 80,
+        "width": 176,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1296,
+        2608
+      ],
+      "typeVersion": 1,
+      "id": "52b120a4-ed48-41bb-b6cc-a9432db59cca",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "Send email",
+        "height": 80,
+        "width": 176,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1296,
+        3056
+      ],
+      "typeVersion": 1,
+      "id": "b139d9c3-569b-475c-a5a6-d33120a6951a",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Run Once for All Items\nconst item = $input.first().json.body;\n\nconst {\n  student_email,\n  teacher_email,\n  subject,\n  body,\n} = item;\n\nif (!student_email || !subject || !body) {\n  throw new Error('Missing required fields: student_email, subject or body');\n}\n\nreturn [\n  {\n    json: {\n      student_email,\n      teacher_email: teacher_email || null,\n      subject,\n      body,\n    },\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -624,
+        3040
+      ],
+      "id": "8e890400-6dd7-4ccd-8c61-84b119172196",
+      "name": "Missing Fields Validation"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Run Once for All Items\nconst item = $('Send email').first().json.body;\n\nreturn [\n  {\n    json: {\n      status: 'sent',\n      student_email: item.student_email,\n      teacher_email: item.teacher_email,\n    },\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        3040
+      ],
+      "id": "aaa7b37f-886d-421e-b244-d009776bae65",
+      "name": "Build Sent Message Confirmation"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        416,
+        3040
+      ],
+      "id": "302ef39d-d1c7-4dba-935f-a59ad7689b61",
+      "name": "Sent Message Confirmation Response"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build one snapshot row per student for `student_daily_snapshots`\n\n// Root object from previous node (your Students API response)\nconst root = $json;\n\n// If you prefer, puedes también usar:\n// const root = $items()[0].json;\n\nconst students = root.students || [];\nconst courseIdCanvas = root.course_id_canvas;\n\nconst teacherId = $('GET Canvas Students').first().json.query.teacher_id || null;\n\n// Dates\nconst now = new Date();\nconst generatedAt = now.toISOString();          // full timestamp\nconst snapshotDate = generatedAt.slice(0, 10);  // 'YYYY-MM-DD'\n\n// Build one item per student\nconst snapshots = students.map(s => {\n  return {\n    json: {\n      course_id_canvas: courseIdCanvas,\n      teacher_id: teacherId,\n\n      student_canvas_id: s.student_canvas_id,\n      student_name: s.name || null,\n      student_email: s.email || null,\n      \n      // Snapshot timestamps\n      snapshot_date: snapshotDate,   // DATE in DB\n      generated_at: generatedAt,     // TIMESTAMPTZ in DB\n\n      // Activity\n      last_activity_at: s.last_activity_at || null,\n      inactive_days: s.inactive_days ?? null,\n      inactive_7_plus: s.inactive_7_plus ?? false,\n\n      // Attendance\n      last_attended_at: s.last_attended_at || null,\n      attendance_days: s.attendance_days ?? null,\n      attendance_risk: s.attendance_risk || null,\n    },\n  };\n});\n\nreturn snapshots;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        1712
+      ],
+      "id": "4408498c-aa0f-4a9f-9195-75585694c9a4",
+      "name": "Build activity metadata"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://wjwbgecdcmyuaohzhass.supabase.co/rest/v1/student_daily_snapshots?on_conflict=teacher_id,course_id_canvas,snapshot_date,student_canvas_id",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "teacher_id",
+              "value": "={{ $json.teacher_id }}"
+            },
+            {
+              "name": "course_id_canvas",
+              "value": "={{ $json.course_id_canvas }}"
+            },
+            {
+              "name": "student_canvas_id",
+              "value": "={{ $json.student_canvas_id }}"
+            },
+            {
+              "name": "student_name",
+              "value": "={{ $json.student_name }}"
+            },
+            {
+              "name": "student_email",
+              "value": "={{ $json.student_email }}"
+            },
+            {
+              "name": "snapshot_date",
+              "value": "={{ $json.snapshot_date }}"
+            },
+            {
+              "name": "generated_at",
+              "value": "={{ $json.generated_at }}"
+            },
+            {
+              "name": "last_activity_at",
+              "value": "={{ $json.last_activity_at }}"
+            },
+            {
+              "name": "inactive_days",
+              "value": "={{ $json.inactive_days }}"
+            },
+            {
+              "name": "inactive_7_plus",
+              "value": "={{ $json.inactive_7_plus }}"
+            },
+            {
+              "name": "last_attended_at",
+              "value": "={{ $json.last_attended_at }}"
+            },
+            {
+              "name": "attendance_days",
+              "value": "={{ $json.attendance_days }}"
+            },
+            {
+              "name": "attendance_risk",
+              "value": "={{ $json.attendance_risk }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        944,
+        1712
+      ],
+      "id": "f255cb86-2506-4f2e-a9d7-5628ccee5921",
+      "name": "Save activity metadata",
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "credentials": {
+        "supabaseApi": {
+          "id": "S0L0RzOVssHvE2Yw",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build rows for student_daily_snapshots upsert\n// This node assumes it receives ONE item with the root structure:\n// { teacher_id, course_id_canvas, generated_at, students: [...] }\n\n// Get root payload (first item)\nconst root = $items()[0].json;\n\n// Core identifiers\nconst teacherId = $('GET Student Submissions').first().json.query.teacher_id;\nconst courseId = root.course_id_canvas;\nconst generatedAt = root.generated_at || new Date().toISOString();\n\n// Snapshot date = only YYYY-MM-DD (logical date for this snapshot)\nconst snapshotDate = generatedAt.slice(0, 10);\n\n// Students array\nconst students = root.students || [];\n\n// Map each student to a row for student_daily_snapshots\nconst rows = students.map((s) => {\n  return {\n    json: {\n      course_id_canvas: courseId,\n      teacher_id: teacherId,\n      \n      student_canvas_id: s.student_canvas_id,\n      student_name: s.name ?? null,\n\n      snapshot_date: snapshotDate,\n      generated_at: generatedAt,\n\n      // Missing assignments and grades\n      missing_assignments_count: s.missing_assignments_count ?? null,\n      has_missing_assignments: s.has_missing_assignments ?? false,\n      current_score: s.current_score ?? null,\n      final_score: s.final_score ?? null,\n    },\n  };\n});\n\nreturn rows;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1136,
+        2112
+      ],
+      "id": "7340fe1e-de93-49a9-bb67-82bfa5b7004d",
+      "name": "Build submissions and grades Data"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://wjwbgecdcmyuaohzhass.supabase.co/rest/v1/student_daily_snapshots?on_conflict=teacher_id,course_id_canvas,snapshot_date,student_canvas_id",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "teacher_id",
+              "value": "={{ $json.teacher_id }}"
+            },
+            {
+              "name": "course_id_canvas",
+              "value": "={{ $json.course_id_canvas }}"
+            },
+            {
+              "name": "student_canvas_id",
+              "value": "={{ $json.student_canvas_id }}"
+            },
+            {
+              "name": "student_name",
+              "value": "={{ $json.student_name }}"
+            },
+            {
+              "name": "snapshot_date",
+              "value": "={{ $json.snapshot_date }}"
+            },
+            {
+              "name": "generated_at",
+              "value": "={{ $json.generated_at }}"
+            },
+            {
+              "name": "missing_assignments_count",
+              "value": "={{ $json.missing_assignments_count }}"
+            },
+            {
+              "name": "has_missing_assignments",
+              "value": "={{ $json.has_missing_assignments }}"
+            },
+            {
+              "name": "current_score",
+              "value": "={{ $json.current_score }}"
+            },
+            {
+              "name": "final_score",
+              "value": "={{ $json.final_score }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1424,
+        2112
+      ],
+      "id": "0fadea1d-f9b6-4dc0-aafa-d6c063129cb3",
+      "name": "Save activity metadata1",
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "credentials": {
+        "supabaseApi": {
+          "id": "S0L0RzOVssHvE2Yw",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3a4566aa-6f6e-4423-8959-71d3416bb2de",
+              "name": "teacher_id",
+              "value": "={{ $('Send email').item.json.body.teacher_id }}",
+              "type": "string"
+            },
+            {
+              "id": "a4bbde17-3fa6-431b-96ca-1ca178eb1e1d",
+              "name": "course_id_canvas",
+              "value": "={{ $('Send email').item.json.body.course_id_canvas }}",
+              "type": "string"
+            },
+            {
+              "id": "ad5decdd-67c3-439c-bfcd-9ea29beda3b8",
+              "name": "student_canvas_id",
+              "value": "={{ $('Send email').item.json.body.student_canvas_id }}",
+              "type": "string"
+            },
+            {
+              "id": "22eb3193-27cb-489e-ae7f-69196213e7c6",
+              "name": "student_email",
+              "value": "={{ $('Send email').item.json.body.student_email }}",
+              "type": "string"
+            },
+            {
+              "id": "ba7e1712-be1c-4e92-b3c9-17b3c60d4ddb",
+              "name": "subject",
+              "value": "={{ $('Send email').item.json.body.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "0297815a-a83b-4443-965f-bb47a85234b1",
+              "name": "body",
+              "value": "={{ $('Send email').item.json.body.body }}",
+              "type": "string"
+            },
+            {
+              "id": "2187835d-ad5b-46b8-bcd9-b010b53aded6",
+              "name": "channel",
+              "value": "email",
+              "type": "string"
+            },
+            {
+              "id": "b3463f85-8f6a-42a4-8907-4400840524b4",
+              "name": "inactive_days_at_send",
+              "value": "={{ $('Send email').item.json.body.context.inactive_days }}",
+              "type": "string"
+            },
+            {
+              "id": "b3807c4a-fea9-4dd0-94bc-52f356b7816f",
+              "name": "missing_assignments_count_at_send",
+              "value": "={{ $('Send email').item.json.body.context.missing_assignments_count }}",
+              "type": "string"
+            },
+            {
+              "id": "08fb25ab-f0e9-4b8c-b0a7-a022b12d04f2",
+              "name": "current_score_at_send",
+              "value": "={{ $('Send email').item.json.body.context.current_score }}",
+              "type": "string"
+            },
+            {
+              "id": "d2e66f26-21dc-4ff6-860a-4d016c27fb5d",
+              "name": "final_score_at_send",
+              "value": "={{ $('Send email').item.json.body.context.final_score }}",
+              "type": "string"
+            },
+            {
+              "id": "5d9fe0a7-d88c-4939-99d0-995a46859f1a",
+              "name": "attendance_risk_at_send",
+              "value": "={{ $('Send email').item.json.body.context.attendance_risk }}",
+              "type": "string"
+            },
+            {
+              "id": "6e79a3c2-d840-4c42-9a5f-2ea90f1f64ac",
+              "name": "sent_at",
+              "value": "={{ new Date().toISOString() }}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        3296
+      ],
+      "id": "76ecf490-68be-4854-93e4-811a78b00ae9",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "tableId": "messages_sent",
+        "dataToSend": "autoMapInputData"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        128,
+        3296
+      ],
+      "id": "58b10937-e626-43d0-bb23-28d2ecdcd8c5",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "S0L0RzOVssHvE2Yw",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "canvas/assignments/remind",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -960,
+        3584
+      ],
+      "id": "0a404d08-1acf-487e-89ac-03ee5349979a",
+      "name": "Reminder",
+      "webhookId": "1e6e8498-f3e0-4024-87d3-7574d071d0a6"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Generate a friendly and encouraging assignment reminder email draft that a teacher will send to their students.\nUse the following context:\n\nCourse name: {{ $json.course_name }}\nTeacher name: {{ $json.teacher_name }}\nAssignment: {{ $json.assignment_title }}\nDue date: {{ $json.assignment_due_at }}\nDays until due: {{ $json.days_until_due }}\nPoints possible: {{ $json.assignment_points_possible }}\n\nReturn ONLY a JSON object:\n{ \"subject\": \"...\", \"body\": \"...\" }",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -352,
+        3584
+      ],
+      "id": "9805d8a3-322c-4614-aab3-90b991dbe20d",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -352,
+        3808
+      ],
+      "id": "1f3bda23-7f55-427d-afb4-6d6113023e20",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "XFPfbxIjV2DvOsis",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// -------------------------------------------------------------\n// Build context for \"upcoming assignment reminder\" (draft only)\n// -------------------------------------------------------------\n\nconst input = $input.first().json.body;\n\nconst assignment = input.assignment || {};\nconst courseName = input.course_name || null;\nconst teacherName = input.teacher_name || null;\n\n// Calculate days until due\nlet daysUntilDue = null;\nif (assignment.due_at) {\n  const now = new Date();\n  const dueDate = new Date(assignment.due_at);\n  const ONE_DAY_MS = 24 * 60 * 60 * 1000;\n  daysUntilDue = Math.floor((dueDate - now) / ONE_DAY_MS);\n}\n\nreturn [\n  {\n    json: {\n      course_name: courseName,\n      teacher_name: teacherName,\n      assignment_title: assignment.title || null,\n      assignment_due_at: assignment.due_at || null,\n      assignment_points_possible: assignment.points_possible ?? null,\n      days_until_due: daysUntilDue\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        3584
+      ],
+      "id": "4bddc11b-d3ba-4d50-a89d-fa161d831d11",
+      "name": "Build reminder context"
+    },
+    {
+      "parameters": {
+        "jsCode": "// `text` viene del Basic LLM Chain\nlet raw = $json.text; // string con el JSON\n\n// Remover formateo de bloque de código markdown (```json ... ```)\nraw = raw.trim();\nif (raw.startsWith('```')) {\n  raw = raw.replace(/^```[a-zA-Z]*\\n?/, '').replace(/```$/, '').trim();\n}\n\nconst parsed = JSON.parse(raw); // { subject: '...', body: '...' }\nreturn [\n  {\n    json: parsed // ahora el flujo tiene { subject, body }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        3584
+      ],
+      "id": "afc52c37-0c26-4ba3-82fb-1eae4f58af42",
+      "name": "Build Reminder JSON"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        352,
+        3584
+      ],
+      "id": "fc4e4716-b89a-4a20-a110-c6c002066ebf",
+      "name": "Response Reminder JSON"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"sent\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -32,
+        3984
+      ],
+      "id": "2417291d-e141-4958-b542-b1722a447a32",
+      "name": "Response sent status"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.student_emails_csv }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.body }}",
+        "options": {
+          "replyTo": "={{ $json.teacher_email }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -336,
+        3984
+      ],
+      "id": "d2155d11-3027-4342-bf07-be899d2ce828",
+      "name": "Send reminder email",
+      "webhookId": "988191a4-f512-4743-8789-1ea815ee49ec",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "DExDbVfvOcNAAB1H",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "canvas/assignments/remind/send",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -960,
+        3984
+      ],
+      "id": "052c59ef-fb43-4007-b48e-2748dcaabbba",
+      "name": "Send reminder",
+      "webhookId": "1e6e8498-f3e0-4024-87d3-7574d071d0a6"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Read incoming data from Lovable\nconst { teacher_email, students, subject, body } = $input.first().json.body;\n\n// Filter only students with a valid email\nconst emails = students\n  .filter(s => s.email_available && s.email)\n  .map(s => s.email);\n\n// Build the comma-separated string\nconst student_emails_csv = emails.join(\", \");\n\n// Return final object\nreturn [\n  {\n    json: {\n      teacher_email,\n      student_emails_csv,\n      subject,\n      body\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        3984
+      ],
+      "id": "5f08a6bf-432c-4d55-8edb-dd3cde7ad8fe",
+      "name": "Build reminder email"
+    },
+    {
+      "parameters": {
+        "content": "Send Reminder Button",
+        "height": 80,
+        "width": 176,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1296,
+        3600
+      ],
+      "typeVersion": 1,
+      "id": "1c71b431-9e20-4975-a3b8-be1d36378676",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "Send Reminder",
+        "height": 80,
+        "width": 176,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1296,
+        4000
+      ],
+      "typeVersion": 1,
+      "id": "6f523a90-7914-4d57-b394-d38ffc012d9c",
+      "name": "Sticky Note10"
+    }
+  ],
+  "pinData": {
+    "Send email": [
+      {
+        "json": {
+          "headers": {
+            "host": "victor-std-torrens.app.n8n.cloud",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+            "content-length": "1139",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "accept-language": "en-US,en;q=0.9,es;q=0.8",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "60.225.147.221",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "AU",
+            "cf-ray": "9a3744c4e68f6dae-ADL",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "origin": "https://15e31c81-4ebd-4dc5-b365-2900438fdd13.lovableproject.com",
+            "priority": "u=1, i",
+            "referer": "https://15e31c81-4ebd-4dc5-b365-2900438fdd13.lovableproject.com/",
+            "sec-ch-ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "x-forwarded-for": "60.225.147.221, 172.69.162.202",
+            "x-forwarded-host": "victor-std-torrens.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-99-5988668464-slqx8",
+            "x-is-trusted": "yes",
+            "x-real-ip": "60.225.147.221"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "teacher_id": "c276ce66-8741-4fd7-ac5b-943e2b25997b",
+            "teacher_email": "victor.rios@student.torrens.edu.au",
+            "course_id_canvas": "13177302",
+            "student_canvas_id": 120144304,
+            "student_name": "Daniel Rios",
+            "student_email": "vtest-acccount@outlook.com",
+            "context": {
+              "inactive_days": 2,
+              "attendance_days": null,
+              "attendance_risk": "no_attendance_yet",
+              "missing_assignments_count": 0,
+              "missing_assignments_titles": [],
+              "current_score": 90,
+              "final_score": 60
+            },
+            "subject": "Checking In and Here to Support You",
+            "body": "Dear Daniel Rios,\n\nI hope this message finds you well. I noticed you haven’t logged into Canvas for a couple of days and wanted to kindly encourage you to check in when you have a moment. Reviewing the course materials can help you stay on track and feel confident.\n\nYour current score is strong, and I’m here to support your continued success. If you have any questions or need assistance, please don’t hesitate to reply to this email or book a meeting with me.\n\nI care about your progress and want to make sure you have everything you need to do your best.\n\nLooking forward to hearing from you.\n\nBest regards,\n[Your Teacher’s Name]"
+          },
+          "webhookUrl": "https://victor-std-torrens.app.n8n.cloud/webhook/canvas/contact-student/send",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "Reminder": [
+      {
+        "json": {
+          "headers": {
+            "host": "victor-std-torrens.app.n8n.cloud",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+            "content-length": "206",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "accept-language": "en-US,en;q=0.9,es;q=0.8",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "60.225.147.221",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "AU",
+            "cf-ray": "9a3d5597e5aeec82-ADL",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "origin": "https://15e31c81-4ebd-4dc5-b365-2900438fdd13.lovableproject.com",
+            "priority": "u=1, i",
+            "referer": "https://15e31c81-4ebd-4dc5-b365-2900438fdd13.lovableproject.com/",
+            "sec-ch-ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "x-forwarded-for": "60.225.147.221, 172.69.162.203",
+            "x-forwarded-host": "victor-std-torrens.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-99-5988668464-jfhnl",
+            "x-is-trusted": "yes",
+            "x-real-ip": "60.225.147.221"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "course_name": "AI Student Learning Progress Navigator",
+            "teacher_name": "Victor Valencia",
+            "assignment": {
+              "assignment_id": 59483650,
+              "title": "Assessment 3",
+              "due_at": "2025-12-01T06:59:00Z",
+              "points_possible": 100
+            }
+          },
+          "webhookUrl": "https://victor-std-torrens.app.n8n.cloud/webhook/canvas/assignments/remind",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "Contact student": [
+      {
+        "json": {
+          "headers": {
+            "host": "victor-std-torrens.app.n8n.cloud",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+            "content-length": "517",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "accept-language": "en-US,en;q=0.9,es;q=0.8",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "60.225.147.221",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "AU",
+            "cf-ray": "9a3d5fe60702ec82-ADL",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "origin": "https://15e31c81-4ebd-4dc5-b365-2900438fdd13.lovableproject.com",
+            "priority": "u=1, i",
+            "referer": "https://15e31c81-4ebd-4dc5-b365-2900438fdd13.lovableproject.com/",
+            "sec-ch-ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "x-forwarded-for": "60.225.147.221, 172.69.162.203",
+            "x-forwarded-host": "victor-std-torrens.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-99-5988668464-jfhnl",
+            "x-is-trusted": "yes",
+            "x-real-ip": "60.225.147.221"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "teacher_id": "c276ce66-8741-4fd7-ac5b-943e2b25997b",
+            "teacher_name": "Victor Valencia",
+            "course_name": "AI Student Learning Progress Navigator",
+            "course_id_canvas": "13177302",
+            "student_canvas_id": 119746869,
+            "student_name": "Sillu Chaudhari",
+            "student_email": "silluben.chaudhari@student.torrens.edu.au",
+            "context": {
+              "inactive_days": 27,
+              "attendance_days": null,
+              "attendance_risk": "no_attendance_yet",
+              "missing_assignments_count": 2,
+              "missing_assignments_titles": [
+                "Assessment 1",
+                "Assessment 2"
+              ],
+              "current_score": null,
+              "final_score": null
+            }
+          },
+          "webhookUrl": "https://victor-std-torrens.app.n8n.cloud/webhook/canvas/contact-student",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook save token": {
+      "main": [
+        [
+          {
+            "node": "teacher_id and token Mapper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook get token status": {
+      "main": [
+        [
+          {
+            "node": "teacher_id mapper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "teacher_id and token Mapper": {
+      "main": [
+        [
+          {
+            "node": "Encrypt token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "teacher_id mapper": {
+      "main": [
+        [
+          {
+            "node": "GET token status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET token status": {
+      "main": [
+        [
+          {
+            "node": "IF Token exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Canvas Token": {
+      "main": [
+        [
+          {
+            "node": "Success response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Encrypt token": {
+      "main": [
+        [
+          {
+            "node": "Save Canvas Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync Canvas Courses": {
+      "main": [
+        [
+          {
+            "node": "teacher_id_Mapper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "teacher_id_Mapper": {
+      "main": [
+        [
+          {
+            "node": "Call 'sync_courses'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET courses from DB": {
+      "main": [
+        [
+          {
+            "node": "Prepare Cache Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Courses from DB": {
+      "main": [
+        [
+          {
+            "node": "GET courses from DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "teacher_id_Mapper1": {
+      "main": [
+        [
+          {
+            "node": "Call 'sync_courses'1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'sync_courses'1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "GET courses from DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'sync_courses'": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Cache Empty": {
+      "main": [
+        [
+          {
+            "node": "teacher_id_Mapper1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Body Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Cache Check": {
+      "main": [
+        [
+          {
+            "node": "IF Cache Empty",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Body Response": {
+      "main": [
+        []
+      ]
+    },
+    "IF Token exists": {
+      "main": [
+        [
+          {
+            "node": "Token response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No token response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET Canvas - Users": {
+      "main": [
+        [
+          {
+            "node": "Merge Student Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET Canvas Students": {
+      "main": [
+        [
+          {
+            "node": "Call 'get-student-enrollments'1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Student Data": {
+      "main": [
+        [
+          {
+            "node": "Build Student Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Student Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Students API",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build activity metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET Canvas - Submissions": {
+      "main": [
+        [
+          {
+            "node": "Build Grades & Missing Assignments Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET Canvas - Assignments": {
+      "main": [
+        [
+          {
+            "node": "GET Canvas - Submissions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET Student Submissions": {
+      "main": [
+        [
+          {
+            "node": "Call 'get-student-enrollments'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET assignments information": {
+      "main": [
+        [
+          {
+            "node": "Call 'get-student-enrollments'2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'get-student-enrollments'": {
+      "main": [
+        [
+          {
+            "node": "GET Canvas - Assignments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Grades & Missing Assignments Response": {
+      "main": [
+        [
+          {
+            "node": "Missing Assignment Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build submissions and grades Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Grades & Missing Assignments Summary": {
+      "main": [
+        [
+          {
+            "node": "Build Grades & Missing Assignments Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'get-student-enrollments'1": {
+      "main": [
+        [
+          {
+            "node": "GET Canvas - Users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET Canvas - Assignments1": {
+      "main": [
+        [
+          {
+            "node": "GET Canvas - Submissions1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'get-student-enrollments'2": {
+      "main": [
+        [
+          {
+            "node": "GET Canvas - Assignments1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET Canvas - Submissions1": {
+      "main": [
+        [
+          {
+            "node": "Build Assignments Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Assignments Summary": {
+      "main": [
+        [
+          {
+            "node": "Build Assignments Summary Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Assignments Summary Response": {
+      "main": [
+        [
+          {
+            "node": "Assignments Summary Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contact student": {
+      "main": [
+        [
+          {
+            "node": "Build Object with llm_prompt for OpenAI API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Build Raw JSON subject and body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Build Sent Message Confirmation",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send email": {
+      "main": [
+        [
+          {
+            "node": "Missing Fields Validation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Object with llm_prompt for OpenAI API": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Raw JSON subject and body": {
+      "main": [
+        [
+          {
+            "node": "Subject and Body Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Missing Fields Validation": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Sent Message Confirmation": {
+      "main": [
+        [
+          {
+            "node": "Sent Message Confirmation Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond Students API": {
+      "main": [
+        []
+      ]
+    },
+    "Build activity metadata": {
+      "main": [
+        [
+          {
+            "node": "Save activity metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build submissions and grades Data": {
+      "main": [
+        [
+          {
+            "node": "Save activity metadata1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reminder": {
+      "main": [
+        [
+          {
+            "node": "Build reminder context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build reminder context": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Build Reminder JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Reminder JSON": {
+      "main": [
+        [
+          {
+            "node": "Response Reminder JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send reminder email": {
+      "main": [
+        [
+          {
+            "node": "Response sent status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send reminder": {
+      "main": [
+        [
+          {
+            "node": "Build reminder email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build reminder email": {
+      "main": [
+        [
+          {
+            "node": "Send reminder email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fd617a77-7cb4-4750-bc6c-d24bf2284f1c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4fdc3799b97b2f172f3adad077f8606d58c34afb0c44808b9859f3dc98d8c37d"
+  },
+  "id": "Wd6IOIfJ9d6zvJFI",
+  "tags": []
+}
